@@ -1,0 +1,16 @@
+{
+  "name": "statistics",
+  "version": "1.0.0",
+  "description": "meeting statistics",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "João Teixeira",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mysql": "^2.18.1",
+    "sparql-http-client": "^2.3.1"
+  }
+}

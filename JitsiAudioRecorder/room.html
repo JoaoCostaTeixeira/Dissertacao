@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+
+  <link href="img/favicon.png" rel="icon">
+  <link href="img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Bootstrap core CSS -->
+  <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <!--external css-->
+  <link href="lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+  <!-- Custom styles for this template -->
+  <link href="css/style.css" rel="stylesheet">
+  <link href="css/style-responsive.css" rel="stylesheet">
+
+
+    <script src="vad.js" ></script>
+	<script src="libs/jquery-2.1.1.min.js"></script>
+
+    <script src="https://meet.jit.si/libs/lib-jitsi-meet.min.js"></script>
+    <script src="example.js" ></script> 
+    <script src="https://www.WebRTC-Experiment.com/RecordRTC.js"></script>
+
+</head>
+<body>
+
+          <div class="row mt showback" style="margin-left: 20px; width: 95%;">
+            
+             
+          </div>
+
+        
+
+    <div class="video">
+
+    </div>
+	<a style="margin-left: 20px;" class="btn btn-primary" onclick="startVAD()">Start VAD</a>
+	<a style="margin-left: 20px;" class="btn btn-primary" onclick=" disconnect()">End</a>
+    <div id="audioOutputSelectWrapper" style="display: none;">
+        Change audio output device
+        <select id="audioOutputSelect" onchange="changeAudioOutput(this)"></select>
+    </div>
+   
+	
+</body>
+</html>
