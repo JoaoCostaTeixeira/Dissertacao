@@ -39,155 +39,162 @@ app.use(function (req, res, next) {
 
 app.get("/getAllStatsUser", async (req, res, next) => {
   var query = `PREFIX meet: <http://www.semanticweb.org/joãoteixeira/ontologies/2021/4/meeting#>
-  select ?rate ?artrate ?speak ?nsyla ?meet from <meet_analyser> where {
-      ?audio a meet:Audio;
-            meet:hasMeeting ?meet;
-            meet:hasStatistics ?stats;
-            meet:hasUser <`+ req.query.i +`>.
-  
-      ?stats a meet:Statistics;
-             meet:rate_of_speech ?rate;
-             meet:speaking_duration ?speak;
-             meet:articulation_rate ?artrate;
-             meet:number_of_syllables ?nsyla.
-  
-  }order by (?meet)`
-  
+                SELECT AVG(?speechsumavg) as ?SpeakDuration AVG(?pausessumavg) as ?NumberPauses 
+                AVG(?balanceavgavg) as ?Balance AVG(?artrateavgavg ) as ?ArticulationRate
+                AVG(?orisumavg ) as ?OriginalDuration AVG(?nssumavg ) as ?NumberSyllables 
+                AVG(?ratespeechavgavg ) as ?RateOfSpeech
+                WHERE
+                {
+                
+                SELECT ?meet AVG(?speechsum) as ?speechsumavg  AVG(?pausessum) as ?pausessumavg 
+                AVG(?balanceavg ) as ?balanceavgavg AVG(?artrateavg ) as ?artrateavgavg 
+                AVG(?orisum) as ?orisumavg AVG(?nssum ) as ?nssumavg 
+                AVG(?ratespeechavg) as ?ratespeechavgavg 
+                WHERE
+                {
+                
+                    SELECT ?meet ?user SUM(?speak) as ?speechsum  SUM(?pauses) as ?pausessum  
+                    AVG(?balance) as ?balanceavg AVG(?artrate) as ?artrateavg 
+                    SUM(?ori) as ?orisum SUM(?ns) as ?nssum  AVG(?ratespeech) as ?ratespeechavg
+                    FROM <meet_analyser> WHERE 
+                    {
+                        ?audio a meet:Audio;
+                            meet:hasMeeting  ?meet;
+                            meet:hasStatistics ?stats;
+                            meet:hasUser ?user.
+                        
+                        ?stats a meet:Statistics;
+                                meet:speaking_duration ?speak;
+                                meet:balance ?balance;
+                                meet:articulation_rate  ?artrate;
+                                meet:number_of_pauses  ?pauses;
+                                meet:rate_of_speech    ?ratespeech;
+                                meet:number_of_syllables ?ns;
+                                meet:original_duration  ?ori.
+                    
+                        FILTER (?speak>0).  
+                    }
+                }
+                }`
+                
   const client = new ParsingClient({ endpointUrl })
   const bindings  = await client.query.select(query)
   var bb = false;
 
-  var rows = [];
-  var artrate = [];
+  var SpeakDuration=0;
+  var NumberPauses=0;
+  var Balance=0;
+  var ArticulationRate=0;
+  var OriginalDuration=0;
+  var NumberSyllables=0;
+  var RateOfSpeech=0;
+
+  
   bindings.forEach(row => {
     bb = true
-    artrate.push(parseInt(Object.entries(row)[1][1].value));
-
-    rows.push({rate:  Object.entries(row)[0][1].value , 
-      speak: parseFloat(Object.entries(row)[2][1].value),
-      nsyla : parseInt(Object.entries(row)[3][1].value),
-      meet : Object.entries(row)[4][1].value,
-    })
+      
+    SpeakDuration = parseFloat(Object.entries(row)[0][1].value);
+    NumberPauses=parseFloat(Object.entries(row)[1][1].value);
+    Balance=parseFloat(Object.entries(row)[2][1].value);
+    ArticulationRate=parseFloat(Object.entries(row)[3][1].value);
+    OriginalDuration=parseFloat(Object.entries(row)[4][1].value);
+    NumberSyllables=parseFloat(Object.entries(row)[5][1].value);
+    RateOfSpeech=parseFloat(Object.entries(row)[6][1].value);
   })
 
 
-  var aux = rows[0].meet;
-  var speak = [];
-  var nsyla = [];
-  var sum2 = 0;
-  var sum = 0;
-  var count = 0;
-  for(var i = 0; i< rows.length; i++){
 
-    if(rows[i].meet != aux){
-      aux = rows[i].meet;
-      speak.push(sum/count);
-      nsyla.push(sum2/count);
-      count = 0;
-      sum = 0;
-      sum2 = 0;
-    }
-      count++;
-      sum += rows[i].speak;
-      sum2 += rows[i].nsyla;
-    
-  }
-
-
-
-  var output = {
-    artrate: (artrate.reduce((a, b) =>a + b, 0)/artrate.length),
-    speak_duration: (speak.reduce((a, b) =>a + b, 0)/speak.length),
-    number_of_sylables: (nsyla.reduce((a, b) =>a + b, 0)/nsyla.length),
-  }
-
-
-  var query2 = `PREFIX meet: <http://www.semanticweb.org/joãoteixeira/ontologies/2021/4/meeting#>
-  select ?rate ?artrate ?speak ?nsyla ?meet from <meet_analyser> where {
-      ?audio a meet:Audio;
-            meet:hasMeeting ?meet;
-            meet:hasStatistics ?stats. 
-  
-      ?stats a meet:Statistics;
-             meet:rate_of_speech ?rate;
-             meet:speaking_duration ?speak;
-             meet:articulation_rate ?artrate;
-             meet:number_of_syllables ?nsyla.
-  
-  }order by (?meet)`
-  
+  var query = `PREFIX meet: <http://www.semanticweb.org/joãoteixeira/ontologies/2021/4/meeting#>
+                
+                SELECT AVG(?speechsum) as ?speechsumavg  AVG(?pausessum) as ?pausessumavg 
+                AVG(?balanceavg ) as ?balanceavgavg AVG(?artrateavg ) as ?artrateavgavg 
+                AVG(?orisum) as ?orisumavg AVG(?nssum ) as ?nssumavg 
+                AVG(?ratespeechavg) as ?ratespeechavgavg 
+                WHERE
+                {
+                
+                    SELECT ?meet SUM(?speak) as ?speechsum  SUM(?pauses) as ?pausessum  
+                    AVG(?balance) as ?balanceavg AVG(?artrate) as ?artrateavg 
+                    SUM(?ori) as ?orisum SUM(?ns) as ?nssum  AVG(?ratespeech) as ?ratespeechavg
+                    FROM <meet_analyser> WHERE 
+                    {
+                        ?audio a meet:Audio;
+                            meet:hasMeeting  ?meet;
+                            meet:hasStatistics ?stats;
+                            meet:hasUser <${req.query.i}>.
+                        
+                        ?stats a meet:Statistics;
+                                meet:speaking_duration ?speak;
+                                meet:balance ?balance;
+                                meet:articulation_rate  ?artrate;
+                                meet:number_of_pauses  ?pauses;
+                                meet:rate_of_speech    ?ratespeech;
+                                meet:number_of_syllables ?ns;
+                                meet:original_duration  ?ori.
+                    
+                        FILTER (?speak>0).  
+                    }
+        
+                }`
+                
   const client2 = new ParsingClient({ endpointUrl })
-  const bindings2  = await client2.query.select(query2)
+  const bindings2  = await client2.query.select(query)
   var bb = false;
 
-  var rows = [];
-  var artrate = [];
+  var SpeakDuration2=0;
+  var NumberPauses2=0;
+  var Balance2=0;
+  var ArticulationRate2=0;
+  var OriginalDuration2=0;
+  var NumberSyllables2=0;
+  var RateOfSpeech2=0;
+
+  
   bindings2.forEach(row => {
     bb = true
-    artrate.push(parseInt(Object.entries(row)[1][1].value));
-
-    rows.push({rate:  Object.entries(row)[0][1].value , 
-      speak: parseFloat(Object.entries(row)[2][1].value),
-      nsyla : parseInt(Object.entries(row)[3][1].value),
-      meet : Object.entries(row)[4][1].value,
-    })
+      
+    SpeakDuration2=parseFloat(Object.entries(row)[0][1].value);
+    NumberPauses2=parseFloat(Object.entries(row)[1][1].value);
+    Balance2=parseFloat(Object.entries(row)[2][1].value);
+    ArticulationRate2=parseFloat(Object.entries(row)[3][1].value);
+    OriginalDuration2=parseFloat(Object.entries(row)[4][1].value);
+    NumberSyllables2=parseFloat(Object.entries(row)[5][1].value);
+    RateOfSpeech2=parseFloat(Object.entries(row)[6][1].value);
   })
 
 
-  var aux = rows[0].meet;
-  var speak = [];
-  var nsyla = [];
-  var sum2 = 0;
-  var sum = 0;
-  var count = 0;
-  for(var i = 0; i< rows.length; i++){
-
-    if(rows[i].meet != aux){
-      aux = rows[i].meet;
-      speak.push(sum/count);
-      nsyla.push(sum2/count);
-      count = 0;
-      sum = 0;
-      sum2 = 0;
-    }
-      count++;
-      sum += rows[i].speak;
-      sum2 += rows[i].nsyla;
-    
-  }
 
 
-
-  var output2 = {
-    artrate: (artrate.reduce((a, b) =>a + b, 0)/artrate.length),
-    speak_duration: (speak.reduce((a, b) =>a + b, 0)/speak.length),
-    number_of_sylables: (nsyla.reduce((a, b) =>a + b, 0)/nsyla.length),
-  }
-  
-
-  var query3 = `PREFIX meet: <http://www.semanticweb.org/joãoteixeira/ontologies/2021/4/meeting#>
-  select * from <meet_analyser>  where {
-
-     ?meeting a meet:Meeting.
-         OPTIONAL {   ?meeting  meet:hasAdmin <`+ req.query.i +`>;  meet:description ?desc.}.
-         OPTIONAL {   ?meeting  meet:hasParticipant <`+ req.query.i +`>.}.
-
-  } `
-  
-  const client3 = new ParsingClient({ endpointUrl })
-  const bindings3  = await client3.query.select(query3)
-
-  var sum = 0;
-  bindings3.forEach(row => {
-    if(Object.entries(row).length>1){
-      sum = sum+1;
+  res.json({valid : bb, 
+    geral:{
+      SpeakDuration : SpeakDuration,
+      NumberPauses: NumberPauses,
+      Balance : Balance,
+      ArticulationRate : ArticulationRate,
+      OriginalDuration : OriginalDuration,
+      NumberSyllables : NumberSyllables,
+      RateOfSpeech : RateOfSpeech,
+    },
+    user:{
+      SpeakDuration : SpeakDuration2.toFixed(2),
+      NumberPauses: NumberPauses2.toFixed(2),
+      Balance : Balance2.toFixed(2),
+      ArticulationRate : ArticulationRate2.toFixed(2),
+      OriginalDuration : OriginalDuration2.toFixed(2),
+      NumberSyllables : NumberSyllables2.toFixed(2),
+      RateOfSpeech : RateOfSpeech2.toFixed(2),
+    },
+    percentages:{
+      SpeakDuration : parseInt((SpeakDuration / SpeakDuration2)*100 - 100),
+      NumberPauses: parseInt((NumberPauses / NumberPauses2)*100 - 100 ),
+      Balance :  parseInt((Balance / Balance2)*100 - 100 ),
+      ArticulationRate :  parseInt((ArticulationRate / ArticulationRate2)*100 - 100 ),
+      OriginalDuration :  parseInt((OriginalDuration / OriginalDuration2)*100 - 100 ),
+      NumberSyllables :  parseInt((NumberSyllables / NumberSyllables2)*100 - 100 ),
+      RateOfSpeech :  parseInt((RateOfSpeech / RateOfSpeech2)*100 - 100 ),
     }
 
-  })
-
-  
-
-  res.json({valid : bb,geral:output2, user: output, totalMeetings:bindings3.length, creator:sum });
+  });
 });
 
 
@@ -239,16 +246,23 @@ app.get("/getSpeechTimeTroughLength", async (req, res, next) => {
 
   for(var i = 0; i<users.length; i++){
     data.push([0])
+    labels.push(0)
   }
 
 
   bindings.forEach(row => {
+
+
     if( parseFloat(Object.entries(row)[4][1].value) !=0){
       var newLabel = false;
-      if(!labels.includes(parseInt(Object.entries(row)[3][1].value))){
-        labels.push("" + parseInt(Object.entries(row)[3][1].value));
+
+    
+      if(labels[labels.length-1]+ 40000 < (parseInt(Object.entries(row)[3][1].value) )){
+         labels.push(parseInt(Object.entries(row)[3][1].value));
         count1.push(""+count2);
         count2++;
+        console.log(count2)
+      
         newLabel = true;
       }
   
@@ -264,8 +278,6 @@ app.get("/getSpeechTimeTroughLength", async (req, res, next) => {
         for(var i = 0;i < users.length; i++ ){
           if(users[i] == Object.entries(row)[2][1].value){
             data[i][data[i].length-1]=(data[i][data[i].length-1] + parseFloat(Object.entries(row)[4][1].value))
-          }else{
-            data[i][data[i].length-1]=(data[i][data[i].length-1])
           }
       }
       }
@@ -291,19 +303,6 @@ app.get("/getSpeechTimeTroughLength", async (req, res, next) => {
 
  
   
-  
-  const data3 = {
-    labels: names,
-    datasets: [
-      {
-        label: 'Speech Time',
-        data: [12, 19, 3, 5, 2, 3],
-        backgroundColor: datasets2backgroundColor,
-        borderColor: datasets2borderColor,
-        borderWidth: 1,
-      },
-    ],
-  };
 
 
   res.json(
@@ -322,6 +321,7 @@ app.get("/getSpeechTimeTroughLength", async (req, res, next) => {
           backgroundColor: datasets2backgroundColor,
           borderColor: datasets2borderColor,
           borderWidth: 1,
+          pointRadius: 0, 
         },
       ],
    },

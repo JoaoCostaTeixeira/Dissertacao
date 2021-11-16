@@ -142,8 +142,8 @@ app.get('/aboutToStart', async function(req, res){
         <`+req.query.i+`> a meet:Meeting;
              meet:hasParticipant ?user.
     }`
-      
-  const client = new ParsingClient({ endpointUrl })
+
+    const client = new ParsingClient({ endpointUrl })
     const bindings  = await client.query.select(query)
     
     var b1 = false;
@@ -157,9 +157,19 @@ app.get('/aboutToStart', async function(req, res){
       }else{
           notificationMap.set(Object.entries(row)[0][1].value,[{type: "meetAboutoStart",id:req.query.i ,message: "Meeting " + req.query.i + " is about to start!!", notid :notId}])
       }
-     // console.log(""+Object.entries(row)[0][1].value)
       io.emit( ""+Object.entries(row)[0][1].value, JSON.stringify({type: "meetAboutoStart",id:req.query.i ,message: "Meeting " + req.query.i + " is about to start!!", notid :notId}))
+      
     })
+
+    if(notificationMap.has(2)){
+        var aux = notificationMap.get(2);
+        aux.push({type: "meetAboutoStart",id:req.query.i ,message: "Meeting " + req.query.i + " is about to start!!", notid :notId})
+    }else{
+        notificationMap.set(2,[{type: "meetAboutoStart",id:req.query.i ,message: "Meeting " + req.query.i + " is about to start!!", notid :notId}])
+    }
+    io.emit( ""+2, JSON.stringify({type: "meetAboutoStart",id:req.query.i ,message: "Meeting " + req.query.i + " is about to start!!", notid :notId}))
+    
+
 
     res.json({valid:b1})
 })
@@ -196,6 +206,9 @@ app.get('/hasEnded', async function(req, res){
             meetingsOngoing.splice(i, 1);
         }
     }
+
+
+    
     res.json({valid:b1})
 })
 
@@ -247,11 +260,13 @@ app.get('/removeNotification', function(req, res){
 setInterval(function(){ 
     if(confidenceAlert){
         for(var i = 0; i<meetingsOngoing.length; i++){
+
+
             axios.get('http://localhost:3020/getStatistics?i=' + meetingsOngoing[i])
             .then(response =>{
                 var data = response.data;
                 if(data.valid){
-                    if(data.geral.confidence<confidence){     
+                    if(data.geral.confidence<0.6){     
                         var notId = Math.floor(Math.random() * (6000) + 1000) ;
                         for(var i = 0; i<data.individual.length;i++){
                             var d=data.individual[i];
@@ -274,43 +289,48 @@ setInterval(function(){
 
 
 //Speech time Alert ------------------------
-setInterval(function(){ 
+setInterval(async function(){ 
     if(speechDurationAlert){
         for(var i = 0; i<meetingsOngoing.length; i++){
-            axios.get('http://localhost:3020/getStatistics?i=' + meetingsOngoing[i])
-            .then(response =>{
-                var data = response.data;
-                if(data.valid){
-                        var notId = Math.floor(Math.random() * (6000) + 1000) ;
-                        for(var i = 1; i<data.individual.length;i++){
-                            var d=data.individual[i];
-                            if(d.speak_duration>speechDuration+30){
-                                if(notificationMap.has(d.id)){
-                                    var aux = notificationMap.get(d.id);
-                                    aux.push({type: "confidence",id: meetingsOngoing[i] ,message: "User " +  d.name + "  has exceed is speech time!!", notid :notId})
-                                }else{
-                                    notificationMap.set(d.id,[{type: "confidence",id: meetingsOngoing[i] ,message:"User " +  d.name + "  has exceed is speech time!!", notid :notId}])
-                                }
 
-                                if(notificationMap.has(data.individual[0].id)){
-                                    var aux = notificationMap.get(data.individual[0].id);
-                                    aux.push({type: "confidence",id: meetingsOngoing[i] ,message: "User " +  d.name + "  has exceed is speech time!!", notid :notId})
-                                }else{
-                                    notificationMap.set(data.individual[0].id,[{type: "confidence",id: meetingsOngoing[i] ,message:"User " +  d.name + "  has exceed is speech time!!", notid :notId}])
-                                }
+            var query =`PREFIX meet: <http://www.semanticweb.org/joãoteixeira/ontologies/2021/4/meeting#>
+            SELECT  ?user FROM <meet_analyser> where {
+                ?audio a meet:Audio;
+                    meet:hasMeeting  <${meetingsOngoing[i]}>;
+                    meet:hasStatistics ?stats;
+                    meet:hasUser ?user.
+            
+                ?stats a meet:Statistics;
+                    meet:speaking_duration ?speech.
+             
+            }  GROUP BY ?user HAVING (SUM(?speech) > 2)`
+              
+        const client = new ParsingClient({ endpointUrl })
+        const bindings  = await client.query.select(query)
 
+        bindings.forEach(row => {
+            b1 = true;
+            var notId = Math.floor(Math.random() * (6000) + 1000) ;
 
-                                io.emit( ""+d.id, JSON.stringify({type: "confidence",id: meetingsOngoing[i] ,message: "User " +  d.name + "  has exceed is speech time!!", notid :notId}))
-                                io.emit( ""+data.individual[0].id, JSON.stringify({type: "confidence",id: meetingsOngoing[i] ,message: "User " +  d.name + "  has exceed is speech time!!", notid :notId}))
-                            }
-                        }
-                    
-                  }
-            })
-          }        
-    }
- 
+            if(notificationMap.has(Object.entries(row)[0][1].value)){
+                var aux = notificationMap.get(Object.entries(row)[0][1].value);
+                aux.push({type: "confidence",id: meetingsOngoing[i] ,message: "User " +  Object.entries(row)[0][1].value + "  has exceed is speech time!!", notid :notId})
+            }else{
+                notificationMap.set(Object.entries(row)[0][1].value,[{type: "confidence",id: meetingsOngoing[i] ,message:"User " +  Object.entries(row)[0][1].value + "  has exceed is speech time!!", notid :notId}])
+            }
+
+            io.emit( ""+Object.entries(row)[0][1].value, JSON.stringify({type: "confidence",id: meetingsOngoing[i] ,message: "User " +  Object.entries(row)[0][1].value + "  has exceed is speech time!!", notid :notId}))
+    
+        });
+    } 
+   
+}
+
 },10000)
+
+                    
+                
+          
 //-------------------------------------
 
 

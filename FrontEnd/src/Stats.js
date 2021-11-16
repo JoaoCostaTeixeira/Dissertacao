@@ -7,6 +7,8 @@ import ReactAudioPlayer from 'react-audio-player';
 
 import * as html2canvas from 'html2canvas'
 import { jsPDF } from "jspdf";
+import "jspdf-autotable";
+
 
 class Stats extends React.Component {
      
@@ -267,8 +269,6 @@ class Stats extends React.Component {
                         <div class="container-fluid">
                             <div class="header-wrap">
                             <button class="btn btn-primary" disabled={this.state.pdfDisable} onClick={()=>{ 
-
-                                this.setState({pdfDisable:true})
                                 html2canvas(document.getElementById("myPage")) .then((canvas) => {
                                     const img = canvas.toDataURL('image/jpg');
                                     var pdf = new jsPDF({
@@ -277,11 +277,46 @@ class Stats extends React.Component {
                                         format: [canvas.width, canvas.height] // set needed dimensions for any element
                                     });
                                     pdf.addImage(img, 'JPEG', 0, 0, canvas.width, canvas.height);
-                                    pdf.save(this.state.meetid + '.pdf');
+                                    pdf.save(this.state.meetid + "_stats"+ '.pdf');
                                 })
 
-                                }}>Generate PDF</button>
+                                }}>Generate PDF Statistics</button>
 
+
+                                <button class="btn btn-primary" disabled={this.state.pdfDisable} onClick={()=>{ 
+                                        const unit = "pt";
+                                        const size = "A4"; // Use A1, A2, A3 or A4
+                                        const orientation = "portrait"; // portrait or landscape
+
+                                        const marginLeft = 40;
+                                        const doc = new jsPDF(orientation, unit, size);
+
+                                        doc.setFontSize(15);
+
+                             
+                                        const title = this.state.meetid;
+                                        const headers = [["Name", "Transcription", "Date"]];
+
+                                        var data = []   
+                                        
+                                        this.state.data2.data.map(elt=>{
+                                            if(elt.text!="No Text Detected"){
+                                                data.push([elt.username, elt.text,new Date(parseInt(elt.time)).toString() ])
+                                            }
+                                        });
+
+                                        let content = {
+                                            startY: 50, 
+                                            head: headers,
+                                            body: data
+                                        };
+
+                                        doc.text(title, marginLeft, 40);
+                                        doc.autoTable(content);
+                                        doc.save(this.state.meetid + "_trancription"+ '.pdf');
+                            
+
+                                }}>Generate PDF Transcription</button>
                                 <div class="header-button">
                      
                                     <div class="account-wrap">
@@ -325,9 +360,9 @@ class Stats extends React.Component {
                         </div>
                     </div>
                 </header>
-                <div class="main-content" id="myPage">
+                <div class="main-content">
                 <div class="section__content section__content--p30">
-                        <div class="container-fluid">
+                        <div class="container-fluid" id="myPage">
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="card border border-primary">
@@ -396,7 +431,7 @@ class Stats extends React.Component {
 
                             <div class="row">
                             <div class="col-md-2">
-                                <div class="card" style={{height:"350px"}}>
+                                <div class="card" style={{height:"400px"}}>
                                     <div class="card-header" style={{backgroundColor: "#88adf7"}}>
                                         <strong class="card-title mb-3">Admin</strong>
                                     </div>
@@ -419,13 +454,13 @@ class Stats extends React.Component {
                             {this.state.participantsData.participants.length>0 ?
                                 this.state.participantsData.participants.map((data) => 
                                 <div class="col-md-2">
-                                <div class="card" style={{height:"350px"}}>
+                                <div class="card" style={{height:"400px"}}>
                                     <div class="card-header">
                                         <strong class="card-title mb-3">Participant</strong>
                                     </div>
                                     <div class="card-body">
                                         <div class="mx-auto d-block">
-                                        <img class="rounded-circle mx-auto d-block" src={data.foto+ "&height=50&width=50&ext=1625393061&hash=AeT6JYDDtSjjn5fw4OE"} alt="Card image cap"/>
+                                        <img class="rounded-circle mx-auto d-block" style={{width:"40px"}} src={"https://static.thenounproject.com/png/630740-200.png"} alt="Card image cap"/>
                                             <h5 class="text-sm-center mt-2 mb-1">{data.name + "#" + data.id}</h5>
 
                                         </div>
@@ -556,6 +591,11 @@ class Stats extends React.Component {
                                     </div>
                                     <div class="card-body">
                                         <Line  data={this.state.speechLineGraph.data}  options= { {
+                                              elements: {
+                                                point:{
+                                                    radius: 0
+                                                }
+                                            },
                                             plugins: {
                                                 legend: {
                                                     labels: {
@@ -594,7 +634,7 @@ class Stats extends React.Component {
                             </div>
                             </div>
                         
-                           
+                            </div>
                               
 
                                 <div class="row m-t-30">
@@ -653,7 +693,7 @@ class Stats extends React.Component {
 
                         </div>
                     </div>
-                </div>
+           
 
             </div>
         </div>);

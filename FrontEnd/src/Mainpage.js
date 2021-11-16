@@ -17,9 +17,6 @@ class Mainpage extends React.Component {
             data : null,
             data2 : null,
 
-            pArtRate : 0,
-            pSpeechDur: 0,
-            pNumberOfSyl : 0,
           };
     }
 
@@ -36,28 +33,6 @@ class Mainpage extends React.Component {
             
             if(data.valid){
                 this.setState({data:data, loading:false})
-
-                if(  data.user.artrate<data.geral.artrate){
-                    this.setState({pArtRate : parseInt((this.state.data.geral.artrate-this.state.data.user.artrate) *100/this.state.data.geral.artrate) });
-                }else{
-                    this.setState({pArtRate : parseInt((-this.state.data.geral.artrate+this.state.data.user.artrate) *100/this.state.data.user.artrate) });
-               
-                }
-                
-                if(  data.user.speak_duration<data.geral.speak_duration){
-                    this.setState({pSpeechDur : parseInt((this.state.data.geral.speak_duration-this.state.data.user.speak_duration) *100/this.state.data.geral.speak_duration) });
-                }else{
-                    this.setState({pSpeechDur : parseInt((-this.state.data.geral.speak_duration+this.state.data.user.speak_duration) *100/this.state.data.user.speak_duration) });
-               
-                }
-
-
-                if(  data.user.number_of_sylables<data.geral.number_of_sylables){
-                    this.setState({pNumberOfSyl : parseInt((this.state.data.geral.number_of_sylables-this.state.data.user.number_of_sylables) *100/this.state.data.geral.number_of_sylables) });
-                }else{
-                    this.setState({pNumberOfSyl : parseInt((-this.state.data.geral.number_of_sylables+this.state.data.user.number_of_sylables) *100/this.state.data.user.number_of_sylables) });
-               
-                }
             }
         }); 
 
@@ -142,9 +117,6 @@ class Mainpage extends React.Component {
                         <li>
                             <br/>
                         </li>
-                        <li>
-                            <a href="/globalstats" type="button" class="btn btn-outline-secondary" style={{color:'black', height:"55px"}}>Global Stats</a>
-                        </li>
                     </ul>
                 </nav>
             </div>
@@ -213,14 +185,13 @@ class Mainpage extends React.Component {
                                         </div>
                                         <div class="card-body">
                                            
-                                            {this.state.data.user.artrate} &nbsp;&nbsp;&nbsp;&nbsp;
+                                            {this.state.data.user.ArticulationRate} &nbsp;&nbsp;&nbsp;&nbsp;
                                             { 
-                                                this.state.pArtRate<20?
-                                                <a style={{color:"green", fontSize:"10pt"}}> { (  this.state.data.user.artrate<this.state.data.geral.artrate ? "-" : "+") + this.state.pArtRate + "%"} </a>
+                                                this.state.data.percentages.ArticulationRate<5 &&  this.state.data.percentages.ArticulationRate>-5?
+                                                <a style={{color:"green", fontSize:"10pt"}}> {  this.state.data.percentages.ArticulationRate + "%"} </a>
                                                 :
-                                                <a style={{color:"red", fontSize:"10pt"}}> { (  this.state.data.user.artrate<this.state.data.geral.artrate ? "-" : "+") + this.state.pArtRate + "%"} </a>
+                                                <a style={{color:"red", fontSize:"10pt"}}> {  this.state.data.percentages.ArticulationRate + "%"} </a>
                                               
-
                                             }
                                         </div>
                                     </div>
@@ -229,14 +200,13 @@ class Mainpage extends React.Component {
                                             <strong class="card-title">Speech Duration</strong>
                                         </div>
                                         <div class="card-body">
-                                            {this.state.data.user.speak_duration} &nbsp;&nbsp;&nbsp;&nbsp;
+                                        {this.state.data.user.SpeakDuration} &nbsp;&nbsp;&nbsp;&nbsp;
                                             { 
-                                                this.state.pSpeechDur<20?
-                                                <a style={{color:"green", fontSize:"10pt"}}> { (  this.state.data.user.speak_duration<this.state.data.geral.speak_duration ? "-" : "+") + this.state.pSpeechDur + "%"} </a>
+                                                this.state.data.percentages.SpeakDuration<5 &&  this.state.data.percentages.SpeakDuration>-5?
+                                                <a style={{color:"green", fontSize:"10pt"}}> {  this.state.data.percentages.SpeakDuration + "%"} </a>
                                                 :
-                                                <a style={{color:"red", fontSize:"10pt"}}> { (  this.state.data.user.speak_duration<this.state.data.geral.speak_duration ? "-" : "+") + this.state.pSpeechDur + "%"} </a>
+                                                <a style={{color:"red", fontSize:"10pt"}}> {  this.state.data.percentages.SpeakDuration + "%"} </a>
                                               
-
                                             }
                                         </div>
                                     </div>
@@ -245,34 +215,67 @@ class Mainpage extends React.Component {
                                             <strong class="card-title">Number of Sylables</strong>
                                         </div>
                                         <div class="card-body">
-                                            {this.state.data.user.number_of_sylables} &nbsp;&nbsp;&nbsp;&nbsp;
+                                        {this.state.data.user.NumberSyllables} &nbsp;&nbsp;&nbsp;&nbsp;
                                             { 
-                                                this.state.pNumberOfSyl<20?
-                                                <a style={{color:"green", fontSize:"10pt"}}> { (  this.state.data.user.number_of_sylables<this.state.data.geral.number_of_sylables ? "-" : "+") + this.state.pNumberOfSyl + "%"} </a>
+                                                this.state.data.percentages.NumberSyllables<5 &&  this.state.data.percentages.NumberSyllables>-5?
+                                                <a style={{color:"green", fontSize:"10pt"}}> {  this.state.data.percentages.NumberSyllables + "%"} </a>
                                                 :
-                                                <a style={{color:"red", fontSize:"10pt"}}> { (  this.state.data.user.number_of_sylables<this.state.data.geral.number_of_sylables ? "-" : "+") + this.state.pNumberOfSyl + "%"} </a>
+                                                <a style={{color:"red", fontSize:"10pt"}}> {  this.state.data.percentages.NumberSyllables + "%"} </a>
                                               
-
                                             }
                                         </div>
                                     </div>
 
                                     <div class="col-md-4">
                                         <div class="card-header">
-                                            <strong class="card-title">Number Total of Meetings</strong>
+                                            <strong class="card-title">Balance</strong>
                                         </div>
                                         <div class="card-body">
-                                            {this.state.data.totalMeetings} 
+                                        {this.state.data.user.Balance} &nbsp;&nbsp;&nbsp;&nbsp;
+                                            { 
+                                                this.state.data.percentages.Balance<5 ||  this.state.data.percentages.Balance<-5?
+                                                <a style={{color:"green", fontSize:"10pt"}}> {  this.state.data.percentages.Balance + "%"} </a>
+                                                :
+                                                <a style={{color:"red", fontSize:"10pt"}}> {  this.state.data.percentages.Balance + "%"} </a>
+                                              
+                                            }
                                         </div>
                                     </div>
+
                                     <div class="col-md-4">
                                         <div class="card-header">
-                                            <strong class="card-title">Meetings Created</strong>
+                                            <strong class="card-title">Number of Pauses</strong>
                                         </div>
                                         <div class="card-body">
-                                            {this.state.data.creator} 
+                                        {this.state.data.user.NumberPauses} &nbsp;&nbsp;&nbsp;&nbsp;
+                                            { 
+                                                this.state.data.percentages.NumberPauses<5 ||  this.state.data.percentages.NumberPauses<-5?
+                                                <a style={{color:"green", fontSize:"10pt"}}> {  this.state.data.percentages.NumberPauses + "%"} </a>
+                                                :
+                                                <a style={{color:"red", fontSize:"10pt"}}> {  this.state.data.percentages.NumberPauses + "%"} </a>
+                                              
+                                            }
                                         </div>
                                     </div>
+
+                                    
+                                    <div class="col-md-4">
+                                        <div class="card-header">
+                                            <strong class="card-title">Intervation Duration</strong>
+                                        </div>
+                                        <div class="card-body">
+                                        {this.state.data.user.OriginalDuration} &nbsp;&nbsp;&nbsp;&nbsp;
+                                            { 
+                                                this.state.data.percentages.OriginalDuration<5 ||  this.state.data.percentages.OriginalDuration<-5?
+                                                <a style={{color:"green", fontSize:"10pt"}}> {  this.state.data.percentages.OriginalDuration + "%"} </a>
+                                                :
+                                                <a style={{color:"red", fontSize:"10pt"}}> {  this.state.data.percentages.OriginalDuration + "%"} </a>
+                                              
+                                            }
+                                        </div>
+                                    </div>
+
+
                                     </div>
                                
                                     </div>
